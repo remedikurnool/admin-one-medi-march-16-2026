@@ -1,15 +1,13 @@
-import { createClient } from '../supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
-export async function getAnalyticsMetrics() {
-  const supabase = await createClient()
-  const { data, error } = await supabase.from('analytics_metrics').select('*')
-  if (error) throw error
-  return data
-}
-
-export async function getReports() {
-  const supabase = await createClient()
-  const { data, error } = await supabase.from('reports').select('*')
+export async function getSalesFunnelEvents() {
+  const supabase = createAdminClient()
+  const { data, error } = await supabase
+    .schema('analytics')
+    .from('sales_funnel_events')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(200)
   if (error) throw error
   return data
 }

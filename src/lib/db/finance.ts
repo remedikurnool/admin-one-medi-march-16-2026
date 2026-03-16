@@ -1,15 +1,49 @@
-import { createClient } from '../supabase/server'
+import { createAdminClient } from '../supabase/admin'
 
-export async function getTransactions() {
-  const supabase = await createClient()
-  const { data, error } = await supabase.from('transactions').select('*')
+export async function getPartnerCommissions() {
+  const supabase = createAdminClient()
+  const { data, error } = await supabase
+    .schema('finance')
+    .from('partner_commissions')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(100)
   if (error) throw error
   return data
 }
 
-export async function getInvoices() {
-  const supabase = await createClient()
-  const { data, error } = await supabase.from('invoices').select('*')
+export async function getVendorSettlements() {
+  const supabase = createAdminClient()
+  const { data, error } = await supabase
+    .schema('finance')
+    .from('vendor_settlements')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(100)
+  if (error) throw error
+  return data
+}
+
+export async function getPartnerPayouts() {
+  const supabase = createAdminClient()
+  const { data, error } = await supabase
+    .schema('finance')
+    .from('partner_payouts')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(100)
+  if (error) throw error
+  return data
+}
+
+export async function getCommissionTransactions() {
+  const supabase = createAdminClient()
+  const { data, error } = await supabase
+    .schema('finance')
+    .from('commission_transactions')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(100)
   if (error) throw error
   return data
 }
