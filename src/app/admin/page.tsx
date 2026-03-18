@@ -5,85 +5,88 @@ import {
   ShoppingCart, Microscope, Stethoscope, Truck, Users, Package,
   TrendingUp, AlertCircle, Activity, DollarSign
 } from 'lucide-react'
+import { RevenueChart } from '@/components/admin/dashboard/RevenueChart'
+import { ModuleRevenueChart } from '@/components/admin/dashboard/ModuleRevenueChart'
+import { 
+  getDailyRevenue, 
+  getMonthlyRevenue, 
+  getModuleRevenue, 
+  getVendorRevenueSummary, 
+  getActiveVendorsCount, 
+  getPendingDeliveriesCount 
+} from '@/lib/db/analytics'
+import { formatDistanceToNow } from 'date-fns'
 
-async function getDashboardStats() {
+async function getDashboardData() {
   const supabase = createAdminClient()
 
   const [
-    { count: medicineOrdersCount },
-    { count: labBookingsCount },
-    { count: consultationBookingsCount },
-    { count: deliveryOrdersCount },
-    { data: medicines },
-    { data: doctors },
-    { data: labs },
-    { data: systemAlerts },
+    dailyRevenue,
+    monthlyRevenue,
+    moduleRevenue,
+    vendorRevenue,
+    activeVendorsCount,
+    pendingDeliveriesCount,
+    { data: recentOrders },
+    { data: recentBookings },
+    { data: systemAlerts }
   ] = await Promise.all([
-    supabase.schema('commerce').from('medicine_orders').select('*', { count: 'exact', head: true }),
-    supabase.schema('diagnostics').from('lab_bookings').select('*', { count: 'exact', head: true }),
-    supabase.schema('consultations').from('consultation_bookings').select('*', { count: 'exact', head: true }),
-    supabase.schema('logistics').from('delivery_orders').select('*', { count: 'exact', head: true }),
-    supabase.schema('commerce').from('medicines').select('id', { count: 'exact', head: false }),
-    supabase.schema('consultations').from('doctors').select('id', { count: 'exact', head: false }),
-    supabase.schema('diagnostics').from('labs').select('id', { count: 'exact', head: false }),
+    getDailyRevenue(),
+    getMonthlyRevenue(),
+    getModuleRevenue(),
+    getVendorRevenueSummary(),
+    getActiveVendorsCount(),
+    getPendingDeliveriesCount(),
+    supabase.schema('commerce').from('medicine_orders').select('id, user_id, total_amount, status, created_at, users(full_name)').order('created_at', { ascending: false }).limit(5),
+    supabase.schema('diagnostics').from('lab_bookings').select('id, user_id, total_amount, status, created_at, users(full_name)').order('created_at', { ascending: false }).limit(5),
     supabase.schema('audit').from('system_alerts').select('*').eq('is_resolved', false).limit(5),
   ])
 
+  // Calculate "Today" stats
+  const todayRevenueData = dailyRevenue[dailyRevenue.length - 1] || { revenue: 0, transactions: 0 }
+  const revenueToday = Number(todayRevenueData.revenue) || 0
+  const ordersToday = Number(todayRevenueData.transactions) || 0
+
+  // We don't have a split for bookings today from the aggregate easily, so let's just make a quick query 
+  // or proxy it from the total transactions if we assume the bulk are orders.
+  // Actually, we can just query today's bookings directly:
+  const todayStr = new Date().toISOString().split('T')[0]
+  const { count: bookingsTodayCount } = await supabase
+    .schema('consultations')
+    .from('consultation_bookings')
+    .select('*', { count: 'exact', head: true })
+    .gte('created_at', todayStr)
+
+  const { count: labBookingsTodayCount } = await supabase
+    .schema('diagnostics')
+    .from('lab_bookings')
+    .select('*', { count: 'exact', head: true })
+    .gte('created_at', todayStr)
+
   return {
-    medicineOrdersCount: medicineOrdersCount ?? 0,
-    labBookingsCount: labBookingsCount ?? 0,
-    consultationBookingsCount: consultationBookingsCount ?? 0,
-    deliveryOrdersCount: deliveryOrdersCount ?? 0,
-    medicinesCount: medicines?.length ?? 0,
-    doctorsCount: doctors?.length ?? 0,
-    labsCount: labs?.length ?? 0,
-    systemAlerts: systemAlerts ?? [],
+    widgets: {
+      revenueToday,
+      ordersToday,
+      bookingsToday: (bookingsTodayCount || 0) + (labBookingsTodayCount || 0),
+      activeVendors: activeVendorsCount,
+      pendingDeliveries: pendingDeliveriesCount,
+    },
+    charts: {
+      dailyRevenue,
+      monthlyRevenue,
+      moduleRevenue,
+    },
+    tables: {
+      recentOrders: recentOrders || [],
+      recentBookings: recentBookings || [],
+      topVendors: vendorRevenue || [],
+    },
+    systemAlerts: systemAlerts || []
   }
 }
 
-const kpiCards = [
-  {
-    title: 'Medicine Orders',
-    key: 'medicineOrdersCount',
-    icon: ShoppingCart,
-    color: 'text-blue-500',
-    bg: 'bg-blue-500/10',
-    description: 'Total orders placed',
-  },
-  {
-    title: 'Lab Bookings',
-    key: 'labBookingsCount',
-    icon: Microscope,
-    color: 'text-purple-500',
-    bg: 'bg-purple-500/10',
-    description: 'Diagnostic bookings',
-  },
-  {
-    title: 'Consultations',
-    key: 'consultationBookingsCount',
-    icon: Stethoscope,
-    color: 'text-green-500',
-    bg: 'bg-green-500/10',
-    description: 'Doctor consultations',
-  },
-  {
-    title: 'Delivery Orders',
-    key: 'deliveryOrdersCount',
-    icon: Truck,
-    color: 'text-orange-500',
-    bg: 'bg-orange-500/10',
-    description: 'Active deliveries',
-  },
-]
-
-const moduleCards = [
-  { title: 'Medicines', key: 'medicinesCount', icon: Package, href: '/admin/commerce/medicines', color: 'text-sky-500' },
-  { title: 'Doctors', key: 'doctorsCount', icon: Users, href: '/admin/consultations/doctors', color: 'text-emerald-500' },
-  { title: 'Labs', key: 'labsCount', icon: Activity, href: '/admin/diagnostics/labs', color: 'text-violet-500' },
-]
-
 export default async function AdminDashboard() {
-  const stats = await getDashboardStats()
+  const data = await getDashboardData()
 
   return (
     <div className="space-y-8">
@@ -93,36 +96,95 @@ export default async function AdminDashboard() {
           Operations Dashboard
         </h1>
         <p className="text-muted-foreground mt-1">
-          Welcome back. Here&apos;s an overview of your ONE MEDI platform.
+          Welcome back. Here&apos;s a quick overview of platform performance.
         </p>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
-        {kpiCards.map((card) => {
-          const Icon = card.icon
-          const value = stats[card.key as keyof typeof stats]
-          return (
-            <Card key={card.title} className="glass-card hover:shadow-2xl transition-all duration-300 hover:-translate-y-0.5">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{card.title}</CardTitle>
-                <div className={`p-2 rounded-lg ${card.bg}`}>
-                  <Icon className={`w-4 h-4 ${card.color}`} />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{typeof value === 'number' ? value.toLocaleString() : '—'}</div>
-                <p className="text-xs text-muted-foreground mt-1">{card.description}</p>
-              </CardContent>
-            </Card>
-          )
-        })}
+      {/* KPI Widgets */}
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
+        <Card className="glass-card hover:-translate-y-0.5 transition-transform duration-300">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Revenue Today</CardTitle>
+            <div className="p-2 rounded-lg bg-emerald-500/10"><DollarSign className="w-4 h-4 text-emerald-500" /></div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+              ${data.widgets.revenueToday.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Total revenue today</p>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-card hover:-translate-y-0.5 transition-transform duration-300">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Orders Today</CardTitle>
+            <div className="p-2 rounded-lg bg-blue-500/10"><ShoppingCart className="w-4 h-4 text-blue-500" /></div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{data.widgets.ordersToday.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground mt-1">Commerce orders</p>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-card hover:-translate-y-0.5 transition-transform duration-300">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Bookings Today</CardTitle>
+            <div className="p-2 rounded-lg bg-purple-500/10"><Activity className="w-4 h-4 text-purple-500" /></div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{data.widgets.bookingsToday.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground mt-1">Consults & Labs</p>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-card hover:-translate-y-0.5 transition-transform duration-300">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Active Vendors</CardTitle>
+            <div className="p-2 rounded-lg bg-orange-500/10"><Users className="w-4 h-4 text-orange-500" /></div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{data.widgets.activeVendors.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground mt-1">Sellers on platform</p>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-card hover:-translate-y-0.5 transition-transform duration-300">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Wait Deliveries</CardTitle>
+            <div className="p-2 rounded-lg bg-red-500/10"><Truck className="w-4 h-4 text-red-500" /></div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600 dark:text-red-400">{data.widgets.pendingDeliveries.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground mt-1">Pending dispatch</p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* System Alerts + Module Summary */}
+      {/* Charts Row */}
       <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+        <RevenueChart 
+          title="Daily Revenue Trend (30 Days)" 
+          description="Gross revenue over the last 30 days"
+          data={data.charts.dailyRevenue} 
+          dateKey="day" 
+          revenueKey="revenue" 
+          type="area" 
+        />
+        <ModuleRevenueChart data={data.charts.moduleRevenue} />
+      </div>
+      
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+        <RevenueChart 
+          title="Monthly Orders Trend (12 Months)" 
+          description="Order volume over the last year"
+          data={data.charts.monthlyRevenue} 
+          dateKey="month" 
+          revenueKey="revenue" 
+          type="bar" 
+        />
+        
         {/* System Alerts */}
-        <Card className="glass-card lg:col-span-2">
+        <Card className="glass-card">
           <CardHeader>
             <div className="flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-destructive" />
@@ -131,7 +193,7 @@ export default async function AdminDashboard() {
             <CardDescription>Active unresolved system alerts</CardDescription>
           </CardHeader>
           <CardContent>
-            {stats.systemAlerts.length === 0 ? (
+            {data.systemAlerts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
                   <Activity className="w-6 h-6 text-green-500" />
@@ -141,7 +203,7 @@ export default async function AdminDashboard() {
               </div>
             ) : (
               <div className="space-y-3">
-                {stats.systemAlerts.map((alert: Record<string, unknown>) => (
+                {data.systemAlerts.map((alert: any) => (
                   <div key={String(alert.id)} className="flex items-start gap-3 p-3 rounded-lg bg-destructive/5 border border-destructive/10">
                     <AlertCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
                     <div>
@@ -157,66 +219,102 @@ export default async function AdminDashboard() {
             )}
           </CardContent>
         </Card>
+      </div>
 
-        {/* Module Summary */}
+      {/* Tables Row */}
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+        {/* Recent Orders */}
         <Card className="glass-card">
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-primary" />
-              <CardTitle className="text-base">Platform Summary</CardTitle>
-            </div>
-            <CardDescription>Key entity counts</CardDescription>
+            <CardTitle className="text-base">Recent Orders</CardTitle>
+            <CardDescription>Latest commerce transactions</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {moduleCards.map((card) => {
-                const Icon = card.icon
-                const value = stats[card.key as keyof typeof stats]
-                return (
-                  <a key={card.title} href={card.href} className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors group">
-                    <Icon className={`w-5 h-5 ${card.color}`} />
-                    <span className="text-sm font-medium flex-1 group-hover:text-primary transition-colors">{card.title}</span>
-                    <span className="text-lg font-bold">{typeof value === 'number' ? value : '—'}</span>
-                  </a>
-                )
-              })}
-              <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
-                <DollarSign className="w-5 h-5 text-amber-500" />
-                <span className="text-sm font-medium flex-1">Finance</span>
-                <a href="/admin/finance" className="text-xs text-primary hover:underline">View →</a>
-              </div>
+              {data.tables.recentOrders.length === 0 ? (
+                 <p className="text-sm flex h-24 items-center justify-center text-muted-foreground">No recent orders</p>
+              ) : data.tables.recentOrders.map((order: any) => (
+                <div key={order.id} className="flex items-center justify-between border-b border-border/50 pb-4 last:border-0 last:pb-0">
+                  <div>
+                    <p className="text-sm font-medium truncate w-32">{order.users?.full_name || 'Anonymous'}</p>
+                    <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold">${Number(order.total_amount).toFixed(2)}</p>
+                    <Badge variant={order.status === 'delivered' ? 'default' : 'secondary'} className="text-[10px]">
+                      {order.status}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Modules Quick Access */}
-      <div>
-        <h2 className="text-lg font-semibold mb-4 text-muted-foreground uppercase tracking-wider text-xs">Quick Access</h2>
-        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
-          {[
-            { label: 'Orders', href: '/admin/commerce/orders', icon: ShoppingCart, color: 'bg-blue-500' },
-            { label: 'Lab Tests', href: '/admin/diagnostics/tests', icon: Microscope, color: 'bg-purple-500' },
-            { label: 'Doctors', href: '/admin/consultations/doctors', icon: Users, color: 'bg-green-500' },
-            { label: 'Logistics', href: '/admin/logistics', icon: Truck, color: 'bg-orange-500' },
-            { label: 'Marketing', href: '/admin/marketing/coupons', icon: TrendingUp, color: 'bg-pink-500' },
-            { label: 'Audit', href: '/admin/audit-security', icon: AlertCircle, color: 'bg-red-500' },
-          ].map((item) => {
-            const Icon = item.icon
-            return (
-              <a
-                key={item.label}
-                href={item.href}
-                className="glass-card flex flex-col items-center gap-3 p-5 rounded-xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
-              >
-                <div className={`w-10 h-10 rounded-xl ${item.color} flex items-center justify-center shadow-lg`}>
-                  <Icon className="w-5 h-5 text-white" />
+        {/* Recent Bookings */}
+        <Card className="glass-card">
+          <CardHeader>
+            <CardTitle className="text-base">Recent Bookings</CardTitle>
+            <CardDescription>Latest lab tests & consults</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {data.tables.recentBookings.length === 0 ? (
+                 <p className="text-sm flex h-24 items-center justify-center text-muted-foreground">No recent bookings</p>
+              ) : data.tables.recentBookings.map((booking: any) => (
+                <div key={booking.id} className="flex items-center justify-between border-b border-border/50 pb-4 last:border-0 last:pb-0">
+                  <div>
+                    <p className="text-sm font-medium truncate w-32">{booking.users?.full_name || 'Anonymous'}</p>
+                    <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(booking.created_at), { addSuffix: true })}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold">${Number(booking.total_amount).toFixed(2)}</p>
+                    <Badge variant={booking.status === 'confirmed' ? 'default' : 'secondary'} className="text-[10px] bg-purple-500/10 text-purple-600 hover:bg-purple-500/20">
+                      {booking.status}
+                    </Badge>
+                  </div>
                 </div>
-                <span className="text-sm font-medium text-center group-hover:text-primary transition-colors">{item.label}</span>
-              </a>
-            )
-          })}
-        </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Top Vendors */}
+        <Card className="glass-card">
+          <CardHeader>
+            <CardTitle className="text-base">Top Vendors</CardTitle>
+            <CardDescription>By total revenue</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {data.tables.topVendors.length === 0 ? (
+                 <p className="text-sm flex h-24 items-center justify-center text-muted-foreground">No vendor data</p>
+              ) : data.tables.topVendors.map((vendor: any) => (
+                <div key={vendor.vendor_id} className="flex items-center justify-between border-b border-border/50 pb-4 last:border-0 last:pb-0">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center shrink-0">
+                      <Users className="w-4 h-4 text-orange-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium truncate w-24">
+                        {vendor.users?.full_name || 'Vendor'}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{vendor.total_transactions} orders</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-emerald-600">
+                      ${Number(vendor.total_revenue).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Comm: ${Number(vendor.platform_commission).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

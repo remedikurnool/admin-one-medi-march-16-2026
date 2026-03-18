@@ -1,38 +1,41 @@
-import { getLabTests } from '@/lib/db/diagnostics'
+import { getLabReports } from '@/lib/db/diagnostics'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { FlaskConical, Beaker, FileText, Tags } from 'lucide-react'
-import TestsClient from './tests-client'
+import { FileText, ClipboardCheck, Clock, ShieldCheck } from 'lucide-react'
+import ReportsClient from './reports-client'
 
-export default async function TestsPage() {
-  let tests = []
+export default async function ReportsPage() {
+  let reports = []
   let fetchError = null
 
   try {
-    tests = (await getLabTests()) ?? []
+    reports = (await getLabReports()) ?? []
   } catch (e) {
     fetchError = e instanceof Error ? e.message : String(e)
   }
 
-  const fastingCount = tests.filter(t => t.fasting_required === true).length
-  const sampleTypes = new Set(tests.map(t => t.sample_type).filter(Boolean)).size
-  const categories = new Set(tests.map(t => t.test_categories?.name).filter(Boolean)).size
+  const reportsWithFiles = reports.filter(r => r.file_url).length
+  const recentReports = reports.filter(r => {
+    const uploadedAt = new Date(r.uploaded_at)
+    const now = new Date()
+    return (now.getTime() - uploadedAt.getTime()) < 24 * 60 * 60 * 1000
+  }).length
 
   const stats = [
-    { label: 'Total Tests', value: tests.length, icon: FlaskConical, color: 'text-blue-600', bg: 'bg-blue-500/10' },
-    { label: 'Fasting Required', value: fastingCount, icon: Beaker, color: 'text-orange-600', bg: 'bg-orange-500/10' },
-    { label: 'Sample Types', value: sampleTypes, icon: FileText, color: 'text-purple-600', bg: 'bg-purple-500/10' },
-    { label: 'Categories', value: categories, icon: Tags, color: 'text-emerald-600', bg: 'bg-emerald-500/10' },
+    { label: 'Total Reports', value: reports.length, icon: FileText, color: 'text-blue-600', bg: 'bg-blue-500/10' },
+    { label: 'Files Uploaded', value: reportsWithFiles, icon: ClipboardCheck, color: 'text-emerald-600', bg: 'bg-emerald-500/10' },
+    { label: 'Last 24 Hours', value: recentReports, icon: Clock, color: 'text-purple-600', bg: 'bg-purple-500/10' },
+    { label: 'Verified', value: reports.length, icon: ShieldCheck, color: 'text-orange-600', bg: 'bg-orange-500/10' },
   ]
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-          <FlaskConical className="w-6 h-6 text-primary" />
-          Diagnostic Tests
+          <FileText className="w-6 h-6 text-primary" />
+          Lab Reports
         </h1>
         <p className="text-muted-foreground text-sm">
-          Management of available diagnostic tests and their clinical requirements
+          Track and verify diagnostic test results uploaded by partner labs
         </p>
       </div>
 
@@ -56,7 +59,7 @@ export default async function TestsPage() {
 
       <Card className="glass-card">
         <CardHeader>
-          <CardTitle className="text-lg">Tests Catalogue</CardTitle>
+          <CardTitle className="text-lg">Result Uploads</CardTitle>
         </CardHeader>
         <CardContent>
           {fetchError ? (
@@ -64,7 +67,7 @@ export default async function TestsPage() {
               Error: {fetchError}
             </div>
           ) : (
-            <TestsClient data={tests} />
+            <ReportsClient data={reports} />
           )}
         </CardContent>
       </Card>

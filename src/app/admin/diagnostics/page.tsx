@@ -1,181 +1,141 @@
-import { getLabs, getLabBookings } from '@/lib/db/diagnostics'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Microscope, Building2, Download } from 'lucide-react'
-import { DateRangePicker } from '@/components/ui/date-range-picker'
-import { Button } from '@/components/ui/button'
+import { getLabs, getLabTests, getLabPricing, getLabBookings, getLabReports } from '@/lib/db/diagnostics'
+import { Card, CardContent } from '@/components/ui/card'
+import { Activity, Beaker, FlaskConical, Banknote, Calendar, FileText, ArrowRight, TrendingUp } from 'lucide-react'
+import Link from 'next/link'
 
-const statusColors: Record<string, string> = {
-  pending: 'text-yellow-600 border-yellow-200 bg-yellow-500/10',
-  confirmed: 'text-blue-600 border-blue-200 bg-blue-500/10',
-  completed: 'text-green-600 border-green-200 bg-green-500/10',
-  cancelled: 'text-red-600 border-red-200 bg-red-500/10',
-}
+const moduleLinks = [
+  {
+    title: 'Labs',
+    description: 'Manage partner laboratories',
+    href: '/admin/diagnostics/labs',
+    icon: Beaker,
+    color: 'from-blue-500/20 to-blue-600/5',
+    iconColor: 'text-blue-600',
+  },
+  {
+    title: 'Tests',
+    description: 'Management diagnostic test catalog',
+    href: '/admin/diagnostics/tests',
+    icon: FlaskConical,
+    color: 'from-purple-500/20 to-purple-600/5',
+    iconColor: 'text-purple-600',
+  },
+  {
+    title: 'Pricing',
+    description: 'Lab test pricing configuration',
+    href: '/admin/diagnostics/pricing',
+    icon: Banknote,
+    color: 'from-emerald-500/20 to-emerald-600/5',
+    iconColor: 'text-emerald-600',
+  },
+  {
+    title: 'Bookings',
+    description: 'Monitor lab test appointments',
+    href: '/admin/diagnostics/bookings',
+    icon: Calendar,
+    color: 'from-orange-500/20 to-orange-600/5',
+    iconColor: 'text-orange-600',
+  },
+  {
+    title: 'Reports',
+    description: 'Track diagnostic report uploads',
+    href: '/admin/diagnostics/reports',
+    icon: FileText,
+    color: 'from-pink-500/20 to-pink-600/5',
+    iconColor: 'text-pink-600',
+  },
+]
 
 export default async function DiagnosticsPage() {
-  let labs: Record<string, unknown>[] = []
-  let bookings: Record<string, unknown>[] = []
-  let fetchError = ''
+  let stats = { labs: 0, tests: 0, pricing: 0, bookings: 0, reports: 0 }
+
   try {
-    ;[labs, bookings] = await Promise.all([getLabs(), getLabBookings()])
-    labs = labs ?? []
-    bookings = bookings ?? []
-  } catch (e) {
-    fetchError = String(e)
+    const [labs, tests, pricing, bookings, reports] = await Promise.all([
+      getLabs().catch(() => []),
+      getLabTests().catch(() => []),
+      getLabPricing().catch(() => []),
+      getLabBookings().catch(() => []),
+      getLabReports().catch(() => []),
+    ])
+    stats = {
+      labs: labs?.length ?? 0,
+      tests: tests?.length ?? 0,
+      pricing: pricing?.length ?? 0,
+      bookings: bookings?.length ?? 0,
+      reports: reports?.length ?? 0,
+    }
+  } catch {
+    // silently fail
   }
 
+  const summaryCards = [
+    { label: 'Total Labs', value: stats.labs, icon: Beaker, color: 'text-blue-600', bg: 'bg-blue-500/10' },
+    { label: 'Active Tests', value: stats.tests, icon: FlaskConical, color: 'text-purple-600', bg: 'bg-purple-500/10' },
+    { label: 'Total Bookings', value: stats.bookings, icon: Calendar, color: 'text-orange-600', bg: 'bg-orange-500/10' },
+    { label: 'Reports Ready', value: stats.reports, icon: FileText, color: 'text-pink-600', bg: 'bg-pink-500/10' },
+  ]
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <Microscope className="w-6 h-6 text-primary" />
-            Diagnostics
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">Labs and bookings overview</p>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          <DateRangePicker />
-          <Button variant="outline" className="border-border/50 bg-background/50">
-            <Download className="w-4 h-4 mr-2" />
-            Export
-          </Button>
-        </div>
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <Activity className="w-6 h-6 text-primary" />
+          Diagnostics
+        </h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          Diagnostics network management and clinical operations tracking
+        </p>
       </div>
 
-      <div className="grid gap-4 grid-cols-2">
-        <Card className="glass-card">
-          <CardContent className="pt-5">
-            <div className="flex items-center gap-3">
-              <Building2 className="w-5 h-5 text-purple-500" />
-              <div>
-                <p className="text-3xl font-bold">{labs.length}</p>
-                <p className="text-xs text-muted-foreground">Partner Labs</p>
+      {/* Summary Stats */}
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        {summaryCards.map((s) => (
+          <Card key={s.label} className="glass-card">
+            <CardContent className="pt-5 pb-4">
+              <div className="flex items-center gap-3">
+                <div className={`p-2.5 rounded-xl ${s.bg}`}>
+                  <s.icon className={`w-4 h-4 ${s.color}`} />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{s.value}</p>
+                  <p className="text-xs text-muted-foreground font-medium">{s.label}</p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="glass-card">
-          <CardContent className="pt-5">
-            <div className="flex items-center gap-3">
-              <Microscope className="w-5 h-5 text-violet-500" />
-              <div>
-                <p className="text-3xl font-bold">{bookings.length}</p>
-                <p className="text-xs text-muted-foreground">Lab Bookings</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {/* Labs Table */}
-      <Card className="glass-card">
-        <CardHeader>
-          <CardTitle>Registered Labs</CardTitle>
-          <CardDescription>{labs.length} labs onboarded</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {fetchError && (
-            <div className="p-4 rounded-lg bg-destructive/10 text-destructive text-sm mb-4">Error: {fetchError}</div>
-          )}
-          {labs.length === 0 && !fetchError ? (
-            <EmptyState label="No labs registered" icon={Building2} />
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-3 px-2 text-muted-foreground font-medium">Lab Name</th>
-                    <th className="text-left py-3 px-2 text-muted-foreground font-medium">Contact</th>
-                    <th className="text-left py-3 px-2 text-muted-foreground font-medium">Address</th>
-                    <th className="text-left py-3 px-2 text-muted-foreground font-medium">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {labs.map((lab) => (
-                    <tr key={String(lab.id)} className="border-b border-border/50 hover:bg-accent/30 transition-colors">
-                      <td className="py-3 px-2 font-medium">{String(lab.name ?? '—')}</td>
-                      <td className="py-3 px-2 text-muted-foreground text-xs">
-                        {String(lab.contact_phone ?? lab.contact_email ?? '—')}
-                      </td>
-                      <td className="py-3 px-2 text-muted-foreground text-xs max-w-[200px] truncate">
-                        {String(lab.address ?? '—')}
-                      </td>
-                      <td className="py-3 px-2">
-                        <Badge variant="outline" className={`text-xs ${lab.is_active ? 'text-green-600 border-green-200 bg-green-500/10' : 'text-red-600 border-red-200 bg-red-500/10'}`}>
-                          {lab.is_active ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Bookings Table */}
-      <Card className="glass-card">
-        <CardHeader>
-          <CardTitle>Recent Lab Bookings</CardTitle>
-          <CardDescription>{bookings.length} bookings</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {bookings.length === 0 && !fetchError ? (
-            <EmptyState label="No lab bookings yet" icon={Microscope} />
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-3 px-2 text-muted-foreground font-medium">Booking ID</th>
-                    <th className="text-left py-3 px-2 text-muted-foreground font-medium">Lab</th>
-                    <th className="text-left py-3 px-2 text-muted-foreground font-medium">Type</th>
-                    <th className="text-left py-3 px-2 text-muted-foreground font-medium">Status</th>
-                    <th className="text-right py-3 px-2 text-muted-foreground font-medium">Amount</th>
-                    <th className="text-left py-3 px-2 text-muted-foreground font-medium">Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bookings.map((b) => {
-                    const lab = b.labs as Record<string, unknown> | null
-                    const statusKey = String(b.booking_status ?? 'pending')
-                    return (
-                      <tr key={String(b.id)} className="border-b border-border/50 hover:bg-accent/30 transition-colors">
-                        <td className="py-3 px-2 font-mono text-xs text-muted-foreground">{String(b.id).slice(0, 8)}…</td>
-                        <td className="py-3 px-2 text-sm">{lab ? String(lab.name ?? '—') : '—'}</td>
-                        <td className="py-3 px-2">
-                          <Badge variant="secondary" className="text-xs capitalize">{String(b.collection_type ?? '—')}</Badge>
-                        </td>
-                        <td className="py-3 px-2">
-                          <Badge variant="outline" className={`text-xs ${statusColors[statusKey] ?? ''}`}>{statusKey}</Badge>
-                        </td>
-                        <td className="py-3 px-2 text-right font-semibold">₹{Number(b.total_amount ?? 0).toFixed(2)}</td>
-                        <td className="py-3 px-2 text-muted-foreground text-xs">
-                          {b.created_at ? new Date(String(b.created_at)).toLocaleDateString('en-IN') : '—'}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  )
-}
-
-function EmptyState({ label, icon: Icon }: { label: string; icon: React.ElementType }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-16 gap-4 text-muted-foreground">
-      <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center">
-        <Icon className="w-8 h-8" />
+      {/* Module Quick Links */}
+      <div>
+        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-muted-foreground" />
+          Modules
+        </h2>
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {moduleLinks.map((mod) => (
+            <Link key={mod.href} href={mod.href}>
+              <Card className="glass-card group hover:shadow-lg hover:border-primary/30 transition-all duration-300 cursor-pointer h-full">
+                <CardContent className="pt-6 pb-5 h-full">
+                  <div className="flex items-start justify-between h-full">
+                    <div className="flex items-start gap-4">
+                      <div className={`p-3 rounded-xl bg-gradient-to-br ${mod.color} flex-shrink-0`}>
+                        <mod.icon className={`w-5 h-5 ${mod.iconColor}`} />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-sm">{mod.title}</h3>
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{mod.description}</p>
+                      </div>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity mt-1 flex-shrink-0" />
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
       </div>
-      <p className="text-sm font-medium">{label}</p>
     </div>
   )
 }

@@ -1,38 +1,37 @@
-import { getLabTests } from '@/lib/db/diagnostics'
+import { getLabs } from '@/lib/db/diagnostics'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { FlaskConical, Beaker, FileText, Tags } from 'lucide-react'
-import TestsClient from './tests-client'
+import { Beaker, Activity, ShieldCheck, MapPin } from 'lucide-react'
+import LabsClient from './labs-client'
 
-export default async function TestsPage() {
-  let tests = []
+export default async function LabsPage() {
+  let labs = []
   let fetchError = null
 
   try {
-    tests = (await getLabTests()) ?? []
+    labs = (await getLabs()) ?? []
   } catch (e) {
     fetchError = e instanceof Error ? e.message : String(e)
   }
 
-  const fastingCount = tests.filter(t => t.fasting_required === true).length
-  const sampleTypes = new Set(tests.map(t => t.sample_type).filter(Boolean)).size
-  const categories = new Set(tests.map(t => t.test_categories?.name).filter(Boolean)).size
+  const activeLabs = labs.filter(l => l.is_active === true).length
+  const cities = new Set(labs.map(l => l.city_id).filter(Boolean)).size
 
   const stats = [
-    { label: 'Total Tests', value: tests.length, icon: FlaskConical, color: 'text-blue-600', bg: 'bg-blue-500/10' },
-    { label: 'Fasting Required', value: fastingCount, icon: Beaker, color: 'text-orange-600', bg: 'bg-orange-500/10' },
-    { label: 'Sample Types', value: sampleTypes, icon: FileText, color: 'text-purple-600', bg: 'bg-purple-500/10' },
-    { label: 'Categories', value: categories, icon: Tags, color: 'text-emerald-600', bg: 'bg-emerald-500/10' },
+    { label: 'Total Labs', value: labs.length, icon: Beaker, color: 'text-blue-600', bg: 'bg-blue-500/10' },
+    { label: 'Active Labs', value: activeLabs, icon: Activity, color: 'text-emerald-600', bg: 'bg-emerald-500/10' },
+    { label: 'Verified', value: labs.length, icon: ShieldCheck, color: 'text-purple-600', bg: 'bg-purple-500/10' },
+    { label: 'Cities', value: cities, icon: MapPin, color: 'text-orange-600', bg: 'bg-orange-500/10' },
   ]
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-          <FlaskConical className="w-6 h-6 text-primary" />
-          Diagnostic Tests
+          <Beaker className="w-6 h-6 text-primary" />
+          Diagnostic Labs
         </h1>
         <p className="text-muted-foreground text-sm">
-          Management of available diagnostic tests and their clinical requirements
+          Manage partner laboratories and their operations status
         </p>
       </div>
 
@@ -56,7 +55,7 @@ export default async function TestsPage() {
 
       <Card className="glass-card">
         <CardHeader>
-          <CardTitle className="text-lg">Tests Catalogue</CardTitle>
+          <CardTitle className="text-lg">All Partner Labs</CardTitle>
         </CardHeader>
         <CardContent>
           {fetchError ? (
@@ -64,7 +63,7 @@ export default async function TestsPage() {
               Error: {fetchError}
             </div>
           ) : (
-            <TestsClient data={tests} />
+            <LabsClient data={labs} />
           )}
         </CardContent>
       </Card>

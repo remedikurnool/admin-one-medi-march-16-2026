@@ -1,38 +1,40 @@
-import { getLabTests } from '@/lib/db/diagnostics'
+import { getLabPricing } from '@/lib/db/diagnostics'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { FlaskConical, Beaker, FileText, Tags } from 'lucide-react'
-import TestsClient from './tests-client'
+import { Banknote, Home, FlaskConical, TrendingUp } from 'lucide-react'
+import PricingClient from './pricing-client'
 
-export default async function TestsPage() {
-  let tests = []
+export default async function PricingPage() {
+  let pricing = []
   let fetchError = null
 
   try {
-    tests = (await getLabTests()) ?? []
+    pricing = (await getLabPricing()) ?? []
   } catch (e) {
     fetchError = e instanceof Error ? e.message : String(e)
   }
 
-  const fastingCount = tests.filter(t => t.fasting_required === true).length
-  const sampleTypes = new Set(tests.map(t => t.sample_type).filter(Boolean)).size
-  const categories = new Set(tests.map(t => t.test_categories?.name).filter(Boolean)).size
+  const avgPrice = pricing.length > 0 
+    ? pricing.reduce((acc, p) => acc + Number(p.price || 0), 0) / pricing.length 
+    : 0
+  const homeCollectionCount = pricing.filter(p => p.home_collection_available === true).length
+  const activePricing = pricing.filter(p => p.is_active === true).length
 
   const stats = [
-    { label: 'Total Tests', value: tests.length, icon: FlaskConical, color: 'text-blue-600', bg: 'bg-blue-500/10' },
-    { label: 'Fasting Required', value: fastingCount, icon: Beaker, color: 'text-orange-600', bg: 'bg-orange-500/10' },
-    { label: 'Sample Types', value: sampleTypes, icon: FileText, color: 'text-purple-600', bg: 'bg-purple-500/10' },
-    { label: 'Categories', value: categories, icon: Tags, color: 'text-emerald-600', bg: 'bg-emerald-500/10' },
+    { label: 'Total Mappings', value: pricing.length, icon: Banknote, color: 'text-blue-600', bg: 'bg-blue-500/10' },
+    { label: 'Avg Test Price', value: `₹${Math.round(avgPrice)}`, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-500/10' },
+    { label: 'Home Collection', value: homeCollectionCount, icon: Home, color: 'text-purple-600', bg: 'bg-purple-500/10' },
+    { label: 'Active Rates', value: activePricing, icon: FlaskConical, color: 'text-orange-600', bg: 'bg-orange-500/10' },
   ]
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-          <FlaskConical className="w-6 h-6 text-primary" />
-          Diagnostic Tests
+          <Banknote className="w-6 h-6 text-primary" />
+          Lab Pricing
         </h1>
         <p className="text-muted-foreground text-sm">
-          Management of available diagnostic tests and their clinical requirements
+          Coordinate test costs and home collection availability across partner labs
         </p>
       </div>
 
@@ -56,7 +58,7 @@ export default async function TestsPage() {
 
       <Card className="glass-card">
         <CardHeader>
-          <CardTitle className="text-lg">Tests Catalogue</CardTitle>
+          <CardTitle className="text-lg">Pricing Matrix</CardTitle>
         </CardHeader>
         <CardContent>
           {fetchError ? (
@@ -64,7 +66,7 @@ export default async function TestsPage() {
               Error: {fetchError}
             </div>
           ) : (
-            <TestsClient data={tests} />
+            <PricingClient data={pricing} />
           )}
         </CardContent>
       </Card>
