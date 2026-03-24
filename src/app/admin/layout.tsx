@@ -2,12 +2,15 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin-sidebar";
 import { AdminHeader } from "@/components/admin-header";
 import { AdminFooter } from "@/components/admin-footer";
+import { requireAdminUser } from "@/lib/auth/require-admin";
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  await requireAdminUser();
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">

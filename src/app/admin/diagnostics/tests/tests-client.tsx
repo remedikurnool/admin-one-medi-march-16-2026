@@ -4,7 +4,7 @@ import { DataTable } from '@/components/admin'
 import { ColumnDef } from '@tanstack/react-table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MoreHorizontal, Eye, Edit, AlertCircle, Clock } from 'lucide-react'
+import { MoreHorizontal, Eye, Edit, Clock } from 'lucide-react'
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -97,9 +97,7 @@ const columns: ColumnDef<LabTest>[] = [
   },
   {
     id: 'actions',
-    cell: ({ row }) => {
-      const test = row.original
-
+    cell: () => {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger>
@@ -127,7 +125,7 @@ const columns: ColumnDef<LabTest>[] = [
   },
 ]
 
-export default function TestsClient({ data }: { data: any[] }) {
+export default function TestsClient({ data }: { data: LabTest[] }) {
   const categories = Array.from(new Set(data.map(t => t.test_categories?.name).filter(Boolean)))
 
   return (

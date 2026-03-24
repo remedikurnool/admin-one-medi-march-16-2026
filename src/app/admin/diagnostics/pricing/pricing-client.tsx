@@ -4,7 +4,7 @@ import { DataTable } from '@/components/admin'
 import { ColumnDef } from '@tanstack/react-table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MoreHorizontal, Edit, Banknote, Home, ToggleLeft } from 'lucide-react'
+import { MoreHorizontal, Edit, Home, ToggleLeft } from 'lucide-react'
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -94,9 +94,7 @@ const columns: ColumnDef<LabPricing>[] = [
   },
   {
     id: 'actions',
-    cell: ({ row }) => {
-      const pricing = row.original
-
+    cell: () => {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger>
@@ -123,7 +121,7 @@ const columns: ColumnDef<LabPricing>[] = [
   },
 ]
 
-export default function PricingClient({ data }: { data: any[] }) {
+export default function PricingClient({ data }: { data: LabPricing[] }) {
   const labs = Array.from(new Set(data.map(p => p.labs?.name).filter(Boolean)))
 
   return (

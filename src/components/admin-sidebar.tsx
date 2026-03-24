@@ -30,7 +30,6 @@ import {
   UserCheck,
   PackageCheck,
   MapPinned,
-  Crosshair,
   Building2,
   Hash,
   Globe,

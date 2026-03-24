@@ -121,7 +121,7 @@ const columns: ColumnDef<Lab>[] = [
   },
 ]
 
-export default function LabsClient({ data }: { data: any[] }) {
+export default function LabsClient({ data }: { data: Lab[] }) {
   return (
     <DataTable
       columns={columns}

@@ -9,9 +9,9 @@ export default async function InventoryPage() {
   let fetchError = ''
   
   try {
-    ;[inventory, alerts] = await Promise.all([getInventoryItems(), getStockAlerts()])
-    inventory = inventory ?? []
-    alerts = alerts ?? []
+    const [inventoryData, alertsData] = await Promise.all([getInventoryItems(), getStockAlerts()])
+    inventory = (inventoryData as unknown as Record<string, unknown>[] | null) ?? []
+    alerts = (alertsData as unknown as Record<string, unknown>[] | null) ?? []
   } catch (e) {
     fetchError = String(e)
   }
