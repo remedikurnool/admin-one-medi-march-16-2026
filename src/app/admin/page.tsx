@@ -2,8 +2,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
-  ShoppingCart, Microscope, Stethoscope, Truck, Users, Package,
-  TrendingUp, AlertCircle, Activity, DollarSign
+  ShoppingCart, Truck, Users,
+  AlertCircle, Activity, DollarSign
 } from 'lucide-react'
 import { RevenueChart } from '@/components/admin/dashboard/RevenueChart'
 import { ModuleRevenueChart } from '@/components/admin/dashboard/ModuleRevenueChart'
@@ -16,6 +16,13 @@ import {
   getPendingDeliveriesCount 
 } from '@/lib/db/analytics'
 import { formatDistanceToNow } from 'date-fns'
+
+function getDisplayName(users: unknown) {
+  if (Array.isArray(users) && users.length > 0) {
+    return String((users[0] as { full_name?: unknown }).full_name ?? 'Anonymous')
+  }
+  return 'Anonymous'
+}
 
 async function getDashboardData() {
   const supabase = createAdminClient()
@@ -203,7 +210,7 @@ export default async function AdminDashboard() {
               </div>
             ) : (
               <div className="space-y-3">
-                {data.systemAlerts.map((alert: any) => (
+                {data.systemAlerts.map((alert) => (
                   <div key={String(alert.id)} className="flex items-start gap-3 p-3 rounded-lg bg-destructive/5 border border-destructive/10">
                     <AlertCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
                     <div>
@@ -233,11 +240,11 @@ export default async function AdminDashboard() {
             <div className="space-y-4">
               {data.tables.recentOrders.length === 0 ? (
                  <p className="text-sm flex h-24 items-center justify-center text-muted-foreground">No recent orders</p>
-              ) : data.tables.recentOrders.map((order: any) => (
+              ) : data.tables.recentOrders.map((order) => (
                 <div key={order.id} className="flex items-center justify-between border-b border-border/50 pb-4 last:border-0 last:pb-0">
                   <div>
-                    <p className="text-sm font-medium truncate w-32">{order.users?.full_name || 'Anonymous'}</p>
-                    <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}</p>
+                    <p className="text-sm font-medium truncate w-32">{getDisplayName(order.users)}</p>
+                    <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(String(order.created_at)), { addSuffix: true })}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold">${Number(order.total_amount).toFixed(2)}</p>
@@ -261,11 +268,11 @@ export default async function AdminDashboard() {
             <div className="space-y-4">
               {data.tables.recentBookings.length === 0 ? (
                  <p className="text-sm flex h-24 items-center justify-center text-muted-foreground">No recent bookings</p>
-              ) : data.tables.recentBookings.map((booking: any) => (
+              ) : data.tables.recentBookings.map((booking) => (
                 <div key={booking.id} className="flex items-center justify-between border-b border-border/50 pb-4 last:border-0 last:pb-0">
                   <div>
-                    <p className="text-sm font-medium truncate w-32">{booking.users?.full_name || 'Anonymous'}</p>
-                    <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(booking.created_at), { addSuffix: true })}</p>
+                    <p className="text-sm font-medium truncate w-32">{getDisplayName(booking.users)}</p>
+                    <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(String(booking.created_at)), { addSuffix: true })}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold">${Number(booking.total_amount).toFixed(2)}</p>
@@ -289,7 +296,7 @@ export default async function AdminDashboard() {
             <div className="space-y-4">
               {data.tables.topVendors.length === 0 ? (
                  <p className="text-sm flex h-24 items-center justify-center text-muted-foreground">No vendor data</p>
-              ) : data.tables.topVendors.map((vendor: any) => (
+              ) : data.tables.topVendors.map((vendor) => (
                 <div key={vendor.vendor_id} className="flex items-center justify-between border-b border-border/50 pb-4 last:border-0 last:pb-0">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center shrink-0">

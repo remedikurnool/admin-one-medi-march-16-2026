@@ -1,7 +1,7 @@
 import { getDeliveryOrders, getDeliveryAgents } from '@/lib/db/logistics'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Truck, MapPin, Package, Clock } from 'lucide-react'
+import { Truck, Package, Clock } from 'lucide-react'
 
 const statusColors: Record<string, string> = {
   pending: 'text-yellow-600 border-yellow-200 bg-yellow-500/10',

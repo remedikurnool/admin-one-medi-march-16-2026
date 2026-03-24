@@ -1,5 +1,5 @@
-import { type Column, type Table, type ColumnDef, type Row } from "@tanstack/react-table"
-import { type DateRange } from "react-day-picker"
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { type ColumnDef, type Row } from "@tanstack/react-table"
 import { type LucideIcon } from "lucide-react"
 
 // ─── Filter Option ───────────────────────────────────────────────────────────
@@ -14,18 +14,18 @@ export interface DataTableFilterOption {
 // ─── Column Definitions ──────────────────────────────────────────────────────
 
 export interface DataTableSearchableColumn<TData> {
-  id: keyof TData & string
+  id: string
   placeholder?: string
 }
 
 export interface DataTableFilterableColumn<TData> {
-  id: keyof TData & string
+  id: string
   title: string
   options: DataTableFilterOption[]
 }
 
 export interface DataTableDateFilterColumn<TData> {
-  id: keyof TData & string
+  id: string
   title: string
 }
 
@@ -49,7 +49,7 @@ export type FilterOperator =
 export type FilterFieldType = "text" | "number" | "date" | "select" | "boolean"
 
 export interface AdvancedFilterField<TData> {
-  id: keyof TData & string
+  id: string
   label: string
   type: FilterFieldType
   options?: DataTableFilterOption[]

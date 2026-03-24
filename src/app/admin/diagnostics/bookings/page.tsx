@@ -1,6 +1,6 @@
 import { getLabBookings } from '@/lib/db/diagnostics'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Calendar, Clock, CheckCircle2, XCircle, AlertCircle, TrendingUp } from 'lucide-react'
+import { Calendar, Clock, CheckCircle2, XCircle, TrendingUp } from 'lucide-react'
 import BookingsClient from './bookings-client'
 
 export default async function BookingsPage() {

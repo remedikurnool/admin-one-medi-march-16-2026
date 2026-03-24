@@ -119,7 +119,7 @@ const columns: ColumnDef<LabReport>[] = [
   },
 ]
 
-export default function ReportsClient({ data }: { data: any[] }) {
+export default function ReportsClient({ data }: { data: LabReport[] }) {
   return (
     <DataTable
       columns={columns}

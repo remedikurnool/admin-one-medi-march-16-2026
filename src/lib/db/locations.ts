@@ -13,12 +13,12 @@ export async function getCities() {
 
 export async function getPincodes() {
   const supabase = createAdminClient()
-  const { data, error } = await (supabase
+  const { data, error } = await supabase
     .schema('locations')
     .from('pincodes')
     .select('*, cities(city_name)')
     .order('pincode')
-    .limit(500) as any)
+    .limit(500)
   if (error) throw error
   return data
 }

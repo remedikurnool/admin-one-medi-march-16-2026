@@ -4,7 +4,7 @@ import { DataTable } from '@/components/admin'
 import { ColumnDef } from '@tanstack/react-table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MoreHorizontal, Eye, Edit, User, Beaker, Calendar, MapPin } from 'lucide-react'
+import { MoreHorizontal, Eye, Edit, Beaker, Calendar, MapPin } from 'lucide-react'
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -126,9 +126,7 @@ const columns: ColumnDef<LabBooking>[] = [
   },
   {
     id: 'actions',
-    cell: ({ row }) => {
-      const booking = row.original
-
+    cell: () => {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger>
@@ -155,7 +153,7 @@ const columns: ColumnDef<LabBooking>[] = [
   },
 ]
 
-export default function BookingsClient({ data }: { data: any[] }) {
+export default function BookingsClient({ data }: { data: LabBooking[] }) {
   return (
     <DataTable
       columns={columns}

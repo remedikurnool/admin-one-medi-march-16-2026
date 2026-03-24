@@ -9,8 +9,7 @@ import {
   XAxis,
   YAxis,
   Bar,
-  BarChart,
-  Legend
+  BarChart
 } from 'recharts'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { format, parseISO } from 'date-fns'
