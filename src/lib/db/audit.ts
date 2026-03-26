@@ -1,60 +1,119 @@
-import { createAdminClient } from '../supabase/admin'
+import { createAdminClient } from '@/lib/supabase/server'
+import { applyQueryOptions, handleDbError, type QueryOptions, type DbResponse } from './queryBuilder'
+import type {
+  AuditLog,
+  AdminActivityLog,
+  SecurityEvent,
+  LoginAttempt,
+  SystemAlert,
+} from '@/types/database'
 
-export async function getAuditLogs() {
+// ─── Audit Logs ───────────────────────────────────────────────────────────
+
+export async function getAuditLogs(
+  options?: QueryOptions
+): Promise<DbResponse<AuditLog>> {
   const supabase = createAdminClient()
-  const { data, error } = await supabase
+  let query = supabase
     .schema('audit')
     .from('audit_logs')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(100)
-  if (error) throw error
-  return data
+    .select('*', { count: 'exact' })
+
+  if (!options?.sortBy) {
+    query = query.order('created_at', { ascending: false })
+  }
+
+  query = applyQueryOptions(query, options)
+
+  const { data, count, error } = await query
+  if (error) return handleDbError<AuditLog>('getAuditLogs', error)
+  return { data: data ?? [], count: count ?? 0, error: null }
 }
 
-export async function getAdminActivityLogs() {
+// ─── Admin Activity Logs ──────────────────────────────────────────────────
+
+export async function getAdminActivityLogs(
+  options?: QueryOptions
+): Promise<DbResponse<AdminActivityLog>> {
   const supabase = createAdminClient()
-  const { data, error } = await supabase
+  let query = supabase
     .schema('audit')
     .from('admin_activity_logs')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(100)
-  if (error) throw error
-  return data
+    .select('*', { count: 'exact' })
+
+  if (!options?.sortBy) {
+    query = query.order('created_at', { ascending: false })
+  }
+
+  query = applyQueryOptions(query, options)
+
+  const { data, count, error } = await query
+  if (error) return handleDbError<AdminActivityLog>('getAdminActivityLogs', error)
+  return { data: data ?? [], count: count ?? 0, error: null }
 }
 
-export async function getSecurityEvents() {
+// ─── Security Events ─────────────────────────────────────────────────────
+
+export async function getSecurityEvents(
+  options?: QueryOptions
+): Promise<DbResponse<SecurityEvent>> {
   const supabase = createAdminClient()
-  const { data, error } = await supabase
+  let query = supabase
     .schema('audit')
     .from('security_events')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(100)
-  if (error) throw error
-  return data
+    .select('*', { count: 'exact' })
+
+  if (!options?.sortBy) {
+    query = query.order('created_at', { ascending: false })
+  }
+
+  query = applyQueryOptions(query, options)
+
+  const { data, count, error } = await query
+  if (error) return handleDbError<SecurityEvent>('getSecurityEvents', error)
+  return { data: data ?? [], count: count ?? 0, error: null }
 }
 
-export async function getLoginAttempts() {
+// ─── Login Attempts ───────────────────────────────────────────────────────
+
+export async function getLoginAttempts(
+  options?: QueryOptions
+): Promise<DbResponse<LoginAttempt>> {
   const supabase = createAdminClient()
-  const { data, error } = await supabase
+  let query = supabase
     .schema('audit')
     .from('login_attempts')
-    .select('*')
-    .order('attempted_at', { ascending: false })
-    .limit(100)
-  if (error) throw error
-  return data
+    .select('*', { count: 'exact' })
+
+  if (!options?.sortBy) {
+    query = query.order('attempted_at', { ascending: false })
+  }
+
+  query = applyQueryOptions(query, options)
+
+  const { data, count, error } = await query
+  if (error) return handleDbError<LoginAttempt>('getLoginAttempts', error)
+  return { data: data ?? [], count: count ?? 0, error: null }
 }
 
-export async function getSystemAlerts() {
+// ─── System Alerts ────────────────────────────────────────────────────────
+
+export async function getSystemAlerts(
+  options?: QueryOptions
+): Promise<DbResponse<SystemAlert>> {
   const supabase = createAdminClient()
-  const { data, error } = await supabase
+  let query = supabase
     .schema('audit')
     .from('system_alerts')
-    .select('*')
-    .order('created_at', { ascending: false })
-  if (error) throw error
-  return data
+    .select('*', { count: 'exact' })
+
+  if (!options?.sortBy) {
+    query = query.order('created_at', { ascending: false })
+  }
+
+  query = applyQueryOptions(query, options)
+
+  const { data, count, error } = await query
+  if (error) return handleDbError<SystemAlert>('getSystemAlerts', error)
+  return { data: data ?? [], count: count ?? 0, error: null }
 }

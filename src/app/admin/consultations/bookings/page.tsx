@@ -11,13 +11,14 @@ const statusColors: Record<string, string> = {
 }
 
 export default async function ConsultationBookingsPage() {
-  let bookings: Record<string, unknown>[] = []
-  let specialities: Record<string, unknown>[] = []
+  let bookings: any[] = []
+  let specialities: any[] = []
   let fetchError = ''
   try {
-    ;[bookings, specialities] = await Promise.all([getConsultationBookings(), getSpecialities()])
-    bookings = bookings ?? []
-    specialities = specialities ?? []
+    const [bookingsRes, specialitiesRes] = await Promise.all([getConsultationBookings(), getSpecialities()])
+    bookings = bookingsRes.data ?? []
+    specialities = specialitiesRes.data ?? []
+    fetchError = bookingsRes.error ?? specialitiesRes.error ?? ''
   } catch (e) {
     fetchError = String(e)
   }

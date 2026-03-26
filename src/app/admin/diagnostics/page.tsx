@@ -50,19 +50,19 @@ export default async function DiagnosticsPage() {
   let stats = { labs: 0, tests: 0, pricing: 0, bookings: 0, reports: 0 }
 
   try {
-    const [labs, tests, pricing, bookings, reports] = await Promise.all([
-      getLabs().catch(() => []),
-      getLabTests().catch(() => []),
-      getLabPricing().catch(() => []),
-      getLabBookings().catch(() => []),
-      getLabReports().catch(() => []),
+    const [labsRes, testsRes, pricingRes, bookingsRes, reportsRes] = await Promise.all([
+      getLabs().catch(() => ({ data: [], count: 0, error: null })),
+      getLabTests().catch(() => ({ data: [], count: 0, error: null })),
+      getLabPricing().catch(() => ({ data: [], count: 0, error: null })),
+      getLabBookings().catch(() => ({ data: [], count: 0, error: null })),
+      getLabReports().catch(() => ({ data: [], count: 0, error: null })),
     ])
     stats = {
-      labs: labs?.length ?? 0,
-      tests: tests?.length ?? 0,
-      pricing: pricing?.length ?? 0,
-      bookings: bookings?.length ?? 0,
-      reports: reports?.length ?? 0,
+      labs: labsRes.data?.length ?? 0,
+      tests: testsRes.data?.length ?? 0,
+      pricing: pricingRes.data?.length ?? 0,
+      bookings: bookingsRes.data?.length ?? 0,
+      reports: reportsRes.data?.length ?? 0,
     }
   } catch {
     // silently fail

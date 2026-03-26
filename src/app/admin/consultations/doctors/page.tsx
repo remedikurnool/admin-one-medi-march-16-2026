@@ -4,10 +4,12 @@ import { Badge } from '@/components/ui/badge'
 import { Stethoscope, UserCheck, UserX } from 'lucide-react'
 
 export default async function DoctorsPage() {
-  let doctors: Record<string, unknown>[] = []
+  let doctors: any[] = []
   let fetchError = ''
   try {
-    doctors = (await getDoctors()) ?? []
+    const response = await getDoctors()
+    doctors = response.data ?? []
+    fetchError = response.error ?? ''
   } catch (e) {
     fetchError = String(e)
   }

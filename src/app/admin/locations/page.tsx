@@ -4,16 +4,17 @@ import { Badge } from '@/components/ui/badge'
 import { MapPin, Map, Navigation, Layers } from 'lucide-react'
 
 export default async function LocationsPage() {
-  let cities: Record<string, unknown>[] = []
-  let pincodes: Record<string, unknown>[] = []
-  let modules: Record<string, unknown>[] = []
+  let cities: any[] = []
+  let pincodes: any[] = []
+  let modules: any[] = []
   let fetchError = ''
   
   try {
-    ;[cities, pincodes, modules] = await Promise.all([getCities(), getPincodes(), getServiceModules()])
-    cities = cities ?? []
-    pincodes = pincodes ?? []
-    modules = modules ?? []
+    const [citiesRes, pincodesRes, modulesRes] = await Promise.all([getCities(), getPincodes(), getServiceModules()])
+    cities = citiesRes.data ?? []
+    pincodes = pincodesRes.data ?? []
+    modules = modulesRes.data ?? []
+    fetchError = citiesRes.error ?? pincodesRes.error ?? modulesRes.error ?? ''
   } catch (e) {
     fetchError = String(e)
   }

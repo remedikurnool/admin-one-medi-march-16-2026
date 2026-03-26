@@ -1,58 +1,119 @@
-import { createAdminClient } from '../supabase/admin'
+import { createAdminClient } from '@/lib/supabase/server'
+import { applyQueryOptions, handleDbError, type QueryOptions, type DbResponse } from './queryBuilder'
+import type {
+  Coupon,
+  Campaign,
+  CustomerSegment,
+  AbandonedCart,
+  CouponRedemption,
+} from '@/types/database'
 
-export async function getCoupons() {
+// ─── Coupons ──────────────────────────────────────────────────────────────
+
+export async function getCoupons(
+  options?: QueryOptions
+): Promise<DbResponse<Coupon>> {
   const supabase = createAdminClient()
-  const { data, error } = await supabase
+  let query = supabase
     .schema('marketing')
     .from('coupons')
-    .select('*')
-    .order('created_at', { ascending: false })
-  if (error) throw error
-  return data
+    .select('*', { count: 'exact' })
+
+  if (!options?.sortBy) {
+    query = query.order('created_at', { ascending: false })
+  }
+
+  query = applyQueryOptions(query, options)
+
+  const { data, count, error } = await query
+  if (error) return handleDbError<Coupon>('getCoupons', error)
+  return { data: data ?? [], count: count ?? 0, error: null }
 }
 
-export async function getCampaigns() {
+// ─── Campaigns ────────────────────────────────────────────────────────────
+
+export async function getCampaigns(
+  options?: QueryOptions
+): Promise<DbResponse<Campaign>> {
   const supabase = createAdminClient()
-  const { data, error } = await supabase
+  let query = supabase
     .schema('marketing')
     .from('campaigns')
-    .select('*')
-    .order('created_at', { ascending: false })
-  if (error) throw error
-  return data
+    .select('*', { count: 'exact' })
+
+  if (!options?.sortBy) {
+    query = query.order('created_at', { ascending: false })
+  }
+
+  query = applyQueryOptions(query, options)
+
+  const { data, count, error } = await query
+  if (error) return handleDbError<Campaign>('getCampaigns', error)
+  return { data: data ?? [], count: count ?? 0, error: null }
 }
 
-export async function getCustomerSegments() {
+// ─── Customer Segments ────────────────────────────────────────────────────
+
+export async function getCustomerSegments(
+  options?: QueryOptions
+): Promise<DbResponse<CustomerSegment>> {
   const supabase = createAdminClient()
-  const { data, error } = await supabase
+  let query = supabase
     .schema('marketing')
     .from('customer_segments')
-    .select('*')
-    .order('created_at', { ascending: false })
-  if (error) throw error
-  return data
+    .select('*', { count: 'exact' })
+
+  if (!options?.sortBy) {
+    query = query.order('created_at', { ascending: false })
+  }
+
+  query = applyQueryOptions(query, options)
+
+  const { data, count, error } = await query
+  if (error) return handleDbError<CustomerSegment>('getCustomerSegments', error)
+  return { data: data ?? [], count: count ?? 0, error: null }
 }
 
-export async function getAbandonedCarts() {
+// ─── Abandoned Carts ──────────────────────────────────────────────────────
+
+export async function getAbandonedCarts(
+  options?: QueryOptions
+): Promise<DbResponse<AbandonedCart>> {
   const supabase = createAdminClient()
-  const { data, error } = await supabase
+  let query = supabase
     .schema('marketing')
     .from('abandoned_carts')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(100)
-  if (error) throw error
-  return data
+    .select('*', { count: 'exact' })
+
+  if (!options?.sortBy) {
+    query = query.order('created_at', { ascending: false })
+  }
+
+  query = applyQueryOptions(query, options)
+
+  const { data, count, error } = await query
+  if (error) return handleDbError<AbandonedCart>('getAbandonedCarts', error)
+  return { data: data ?? [], count: count ?? 0, error: null }
 }
 
-export async function getCouponRedemptions() {
+// ─── Coupon Redemptions ───────────────────────────────────────────────────
+
+export async function getCouponRedemptions(
+  options?: QueryOptions
+): Promise<DbResponse<CouponRedemption>> {
   const supabase = createAdminClient()
-  const { data, error } = await supabase
+  let query = supabase
     .schema('marketing')
     .from('coupon_redemptions')
-    .select('*')
-    .order('redeemed_at', { ascending: false })
-    .limit(100)
-  if (error) throw error
-  return data
+    .select('*', { count: 'exact' })
+
+  if (!options?.sortBy) {
+    query = query.order('redeemed_at', { ascending: false })
+  }
+
+  query = applyQueryOptions(query, options)
+
+  const { data, count, error } = await query
+  if (error) return handleDbError<CouponRedemption>('getCouponRedemptions', error)
+  return { data: data ?? [], count: count ?? 0, error: null }
 }

@@ -13,13 +13,14 @@ const statusColors: Record<string, string> = {
 }
 
 export default async function LogisticsPage() {
-  let orders: Record<string, unknown>[] = []
-  let agents: Record<string, unknown>[] = []
+  let orders: any[] = []
+  let agents: any[] = []
   let fetchError = ''
   try {
-    ;[orders, agents] = await Promise.all([getDeliveryOrders(), getDeliveryAgents()])
-    orders = orders ?? []
-    agents = agents ?? []
+    const [ordersRes, agentsRes] = await Promise.all([getDeliveryOrders(), getDeliveryAgents()])
+    orders = ordersRes.data ?? []
+    agents = agentsRes.data ?? []
+    fetchError = ordersRes.error ?? agentsRes.error ?? ''
   } catch (e) {
     fetchError = String(e)
   }

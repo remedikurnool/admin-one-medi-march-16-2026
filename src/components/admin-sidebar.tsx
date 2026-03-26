@@ -135,9 +135,8 @@ const navModules: { label: string; items: NavItem[] }[] = [
         url: "/admin/logistics",
         icon: Truck,
         items: [
-          { title: "Delivery Partners", url: "/admin/logistics/delivery-partners", icon: Users },
-          { title: "Delivery Agents", url: "/admin/logistics/delivery-agents", icon: UserCheck },
-          { title: "Deliveries", url: "/admin/logistics/deliveries", icon: PackageCheck },
+          { title: "Delivery Orders", url: "/admin/logistics/orders", icon: PackageCheck },
+          { title: "Delivery Partners", url: "/admin/logistics/partners", icon: Users },
           { title: "Tracking", url: "/admin/logistics/tracking", icon: MapPinned },
         ],
       },
@@ -153,7 +152,7 @@ const navModules: { label: string; items: NavItem[] }[] = [
         items: [
           { title: "Commissions", url: "/admin/finance/commissions", icon: DollarSign },
           { title: "Settlements", url: "/admin/finance/settlements", icon: ClipboardList },
-          { title: "Vendor Payouts", url: "/admin/finance/vendor-payouts", icon: Banknote },
+          { title: "Partner Payouts", url: "/admin/finance/payouts", icon: Banknote },
         ],
       },
       {
@@ -161,8 +160,7 @@ const navModules: { label: string; items: NavItem[] }[] = [
         url: "/admin/inventory",
         icon: Box,
         items: [
-          { title: "Vendor Inventory", url: "/admin/inventory/vendor-inventory", icon: Building2 },
-          { title: "Stock Movements", url: "/admin/inventory/stock-movements", icon: TrendingUp },
+          { title: "Inventory Overview", url: "/admin/inventory/movements", icon: TrendingUp },
           { title: "Stock Alerts", url: "/admin/inventory/stock-alerts", icon: AlertTriangle },
         ],
       },
@@ -173,7 +171,7 @@ const navModules: { label: string; items: NavItem[] }[] = [
         items: [
           { title: "Cities", url: "/admin/locations/cities", icon: Building2 },
           { title: "Pincodes", url: "/admin/locations/pincodes", icon: Hash },
-          { title: "Service Coverage", url: "/admin/locations/service-coverage", icon: Globe },
+          { title: "Service Coverage", url: "/admin/locations/coverage", icon: Globe },
         ],
       },
     ],
@@ -220,13 +218,13 @@ const navModules: { label: string; items: NavItem[] }[] = [
     items: [
       {
         title: "Security",
-        url: "/admin/security",
+        url: "/admin/audit-security",
         icon: ShieldCheck,
         items: [
-          { title: "Audit Logs", url: "/admin/security/audit-logs", icon: ScrollText },
-          { title: "Admin Activity", url: "/admin/security/admin-activity", icon: Activity },
-          { title: "Login Attempts", url: "/admin/security/login-attempts", icon: LogIn },
-          { title: "Security Events", url: "/admin/security/security-events", icon: AlertTriangle },
+          { title: "Audit Logs", url: "/admin/audit-security/logs", icon: ScrollText },
+          { title: "Admin Activity", url: "/admin/audit-security/activity", icon: Activity },
+          { title: "Login Attempts", url: "/admin/audit-security/login-attempts", icon: LogIn },
+          { title: "Security Events", url: "/admin/audit-security/security-events", icon: AlertTriangle },
         ],
       },
       {

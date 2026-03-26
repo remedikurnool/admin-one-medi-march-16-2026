@@ -13,11 +13,13 @@ const statusConfig: Record<string, string> = {
 }
 
 export default async function CampaignsPage() {
-  let campaigns: Record<string, unknown>[] = []
+  let campaigns: any[] = []
   let fetchError = ''
   
   try {
-    campaigns = (await getCampaigns()) ?? []
+    const response = await getCampaigns()
+    campaigns = response.data ?? []
+    fetchError = response.error ?? ''
   } catch (e) {
     fetchError = String(e)
   }

@@ -136,4 +136,7 @@
   .premium-gradient {
     @apply bg-gradient-to-br from-primary via-primary/80 to-primary/60;
   }
+  .hover-lift {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:hover:shadow-primary/10;
+  }
 }

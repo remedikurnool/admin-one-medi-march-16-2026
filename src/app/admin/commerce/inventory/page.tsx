@@ -4,10 +4,12 @@ import { Box, Package, AlertTriangle, DollarSign } from 'lucide-react'
 import { InventoryClient } from './inventory-client'
 
 export default async function InventoryPage() {
-  let inventory: Record<string, unknown>[] = []
+  let inventory: any[] = []
   let fetchError = ''
   try {
-    inventory = (await getMedicineInventory()) ?? []
+    const response = await getMedicineInventory()
+    inventory = response.data ?? []
+    fetchError = response.error ?? ''
   } catch (e) {
     fetchError = e instanceof Error ? e.message : String(e)
   }

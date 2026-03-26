@@ -1,47 +1,96 @@
-import { createAdminClient } from '../supabase/admin'
+import { createAdminClient } from '@/lib/supabase/server'
+import { applyQueryOptions, handleDbError, type QueryOptions, type DbResponse } from './queryBuilder'
+import type {
+  Doctor,
+  Speciality,
+  ConsultationBooking,
+  DoctorSlot,
+} from '@/types/database'
 
-export async function getDoctors() {
+// ─── Doctors ──────────────────────────────────────────────────────────────
+
+export async function getDoctors(
+  options?: QueryOptions
+): Promise<DbResponse<Doctor>> {
   const supabase = createAdminClient()
-  const { data, error } = await supabase
+  let query = supabase
     .schema('consultations')
     .from('doctors')
-    .select('*, specialities(name)')
-    .order('created_at', { ascending: false })
-  if (error) throw error
-  return data
+    .select('*, specialities(name)', { count: 'exact' })
+
+  if (!options?.sortBy) {
+    query = query.order('created_at', { ascending: false })
+  }
+
+  query = applyQueryOptions(query, options)
+
+  const { data, count, error } = await query
+  if (error) return handleDbError<Doctor>('getDoctors', error)
+  return { data: data ?? [], count: count ?? 0, error: null }
 }
 
-export async function getConsultationBookings() {
+// ─── Bookings ─────────────────────────────────────────────────────────────
+
+export async function getConsultationBookings(
+  options?: QueryOptions
+): Promise<DbResponse<ConsultationBooking>> {
   const supabase = createAdminClient()
-  const { data, error } = await supabase
+  let query = supabase
     .schema('consultations')
     .from('consultation_bookings')
-    .select('*, doctors(full_name)')
-    .order('created_at', { ascending: false })
-    .limit(100)
-  if (error) throw error
-  return data
+    .select('*, doctors(full_name)', { count: 'exact' })
+
+  if (!options?.sortBy) {
+    query = query.order('created_at', { ascending: false })
+  }
+
+  query = applyQueryOptions(query, options)
+
+  const { data, count, error } = await query
+  if (error) return handleDbError<ConsultationBooking>('getConsultationBookings', error)
+  return { data: data ?? [], count: count ?? 0, error: null }
 }
 
-export async function getDoctorSlots() {
+// ─── Slots ────────────────────────────────────────────────────────────────
+
+export async function getDoctorSlots(
+  options?: QueryOptions
+): Promise<DbResponse<DoctorSlot>> {
   const supabase = createAdminClient()
-  const { data, error } = await supabase
+  let query = supabase
     .schema('consultations')
     .from('doctor_slots')
-    .select('*, doctors(full_name)')
-    .order('slot_time', { ascending: false })
-    .limit(100)
-  if (error) throw error
-  return data
+    .select('*, doctors(full_name)', { count: 'exact' })
+
+  if (!options?.sortBy) {
+    query = query.order('slot_time', { ascending: false })
+  }
+
+  query = applyQueryOptions(query, options)
+
+  const { data, count, error } = await query
+  if (error) return handleDbError<DoctorSlot>('getDoctorSlots', error)
+  return { data: data ?? [], count: count ?? 0, error: null }
 }
 
-export async function getSpecialities() {
+// ─── Specialities ─────────────────────────────────────────────────────────
+
+export async function getSpecialities(
+  options?: QueryOptions
+): Promise<DbResponse<Speciality>> {
   const supabase = createAdminClient()
-  const { data, error } = await supabase
+  let query = supabase
     .schema('consultations')
     .from('specialities')
-    .select('*')
-    .order('name')
-  if (error) throw error
-  return data
+    .select('*', { count: 'exact' })
+
+  if (!options?.sortBy) {
+    query = query.order('name')
+  }
+
+  query = applyQueryOptions(query, options)
+
+  const { data, count, error } = await query
+  if (error) return handleDbError<Speciality>('getSpecialities', error)
+  return { data: data ?? [], count: count ?? 0, error: null }
 }

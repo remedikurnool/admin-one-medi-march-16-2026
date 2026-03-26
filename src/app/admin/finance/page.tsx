@@ -11,20 +11,21 @@ const settlementStatusConfig: Record<string, string> = {
 }
 
 export default async function FinancePage() {
-  let settlements: Record<string, unknown>[] = []
-  let commissions: Record<string, unknown>[] = []
-  let payouts: Record<string, unknown>[] = []
+  let settlements: any[] = []
+  let commissions: any[] = []
+  let payouts: any[] = []
   let fetchError = ''
   
   try {
-    ;[settlements, commissions, payouts] = await Promise.all([
+    const [settlementsRes, commissionsRes, payoutsRes] = await Promise.all([
       getVendorSettlements(),
       getPartnerCommissions(),
       getPartnerPayouts()
     ])
-    settlements = settlements ?? []
-    commissions = commissions ?? []
-    payouts = payouts ?? []
+    settlements = settlementsRes.data ?? []
+    commissions = commissionsRes.data ?? []
+    payouts = payoutsRes.data ?? []
+    fetchError = settlementsRes.error ?? commissionsRes.error ?? payoutsRes.error ?? ''
   } catch (e) {
     fetchError = String(e)
   }

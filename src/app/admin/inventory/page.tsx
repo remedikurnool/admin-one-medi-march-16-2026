@@ -4,14 +4,15 @@ import { Badge } from '@/components/ui/badge'
 import { Box, AlertTriangle, PackageSearch } from 'lucide-react'
 
 export default async function InventoryPage() {
-  let inventory: Record<string, unknown>[] = []
-  let alerts: Record<string, unknown>[] = []
+  let inventory: any[] = []
+  let alerts: any[] = []
   let fetchError = ''
   
   try {
-    ;[inventory, alerts] = await Promise.all([getInventoryItems(), getStockAlerts()])
-    inventory = inventory ?? []
-    alerts = alerts ?? []
+    const [inventoryRes, alertsRes] = await Promise.all([getInventoryItems(), getStockAlerts()])
+    inventory = inventoryRes.data ?? []
+    alerts = alertsRes.data ?? []
+    fetchError = inventoryRes.error ?? alertsRes.error ?? ''
   } catch (e) {
     fetchError = String(e)
   }

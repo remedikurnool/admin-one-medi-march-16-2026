@@ -4,16 +4,17 @@ import { Pill, Package, Layers, FlaskConical } from 'lucide-react'
 import { MedicinesClient } from './medicines-client'
 
 export default async function MedicinesPage() {
-  let medicines: Record<string, unknown>[] = []
-  let categories: Record<string, unknown>[] = []
+  let medicines: any[] = []
+  let categories: any[] = []
   let fetchError = ''
   try {
-    ;[medicines, categories] = await Promise.all([
-      getMedicines() ?? [],
-      getMedicineCategories() ?? [],
+    const [medicinesRes, categoriesRes] = await Promise.all([
+      getMedicines(),
+      getMedicineCategories(),
     ])
-    medicines = medicines ?? []
-    categories = categories ?? []
+    medicines = medicinesRes.data ?? []
+    categories = categoriesRes.data ?? []
+    fetchError = medicinesRes.error ?? categoriesRes.error ?? ''
   } catch (e) {
     fetchError = e instanceof Error ? e.message : String(e)
   }

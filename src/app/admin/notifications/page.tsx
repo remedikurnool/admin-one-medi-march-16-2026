@@ -17,11 +17,13 @@ const typeIcons: Record<string, React.ElementType> = {
 }
 
 export default async function NotificationsPage() {
-  let logs: Record<string, unknown>[] = []
+  let logs: any[] = []
   let fetchError = ''
   
   try {
-    logs = (await getNotificationLogs()) ?? []
+    const response = await getNotificationLogs()
+    logs = response.data ?? []
+    fetchError = response.error ?? ''
   } catch (e) {
     fetchError = String(e)
   }

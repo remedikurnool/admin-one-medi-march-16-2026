@@ -4,14 +4,15 @@ import { Badge } from '@/components/ui/badge'
 import { Tag, Ticket, CircleSlash } from 'lucide-react'
 
 export default async function CouponsPage() {
-  let coupons: Record<string, unknown>[] = []
-  let redemptions: Record<string, unknown>[] = []
+  let coupons: any[] = []
+  let redemptions: any[] = []
   let fetchError = ''
   
   try {
-    ;[coupons, redemptions] = await Promise.all([getCoupons(), getCouponRedemptions()])
-    coupons = coupons ?? []
-    redemptions = redemptions ?? []
+    const [couponsRes, redemptionsRes] = await Promise.all([getCoupons(), getCouponRedemptions()])
+    coupons = couponsRes.data ?? []
+    redemptions = redemptionsRes.data ?? []
+    fetchError = couponsRes.error ?? redemptionsRes.error ?? ''
   } catch (e) {
     fetchError = String(e)
   }

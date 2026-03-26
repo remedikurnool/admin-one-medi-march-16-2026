@@ -1,35 +1,73 @@
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createAdminClient } from '@/lib/supabase/server'
+import { applyQueryOptions, handleDbError, type QueryOptions, type DbResponse } from './queryBuilder'
+import type {
+  City,
+  Pincode,
+  ServiceModule,
+} from '@/types/database'
 
-export async function getCities() {
+// ─── Cities ───────────────────────────────────────────────────────────────
+
+export async function getCities(
+  options?: QueryOptions
+): Promise<DbResponse<City>> {
   const supabase = createAdminClient()
-  const { data, error } = await supabase
+  let query = supabase
     .schema('locations')
     .from('cities')
-    .select('*')
-    .order('city_name')
-  if (error) throw error
-  return data
+    .select('*', { count: 'exact' })
+
+  if (!options?.sortBy) {
+    query = query.order('city_name')
+  }
+
+  query = applyQueryOptions(query, options)
+
+  const { data, count, error } = await query
+  if (error) return handleDbError<City>('getCities', error)
+  return { data: data ?? [], count: count ?? 0, error: null }
 }
 
-export async function getPincodes() {
+// ─── Pincodes ─────────────────────────────────────────────────────────────
+
+export async function getPincodes(
+  options?: QueryOptions
+): Promise<DbResponse<Pincode>> {
   const supabase = createAdminClient()
-  const { data, error } = await (supabase
+  let query = supabase
     .schema('locations')
     .from('pincodes')
-    .select('*, cities(city_name)')
-    .order('pincode')
-    .limit(500) as any)
-  if (error) throw error
-  return data
+    .select('*, cities(city_name)', { count: 'exact' })
+
+  if (!options?.sortBy) {
+    query = query.order('pincode')
+  }
+
+  query = applyQueryOptions(query, options)
+
+  const { data, count, error } = await (query as any)
+  if (error) return handleDbError<Pincode>('getPincodes', error)
+  return { data: data ?? [], count: count ?? 0, error: null }
 }
 
-export async function getServiceModules() {
+// ─── Service Modules ──────────────────────────────────────────────────────
+
+export async function getServiceModules(
+  options?: QueryOptions
+): Promise<DbResponse<ServiceModule>> {
   const supabase = createAdminClient()
-  const { data, error } = await supabase
+  let query = supabase
     .schema('locations')
     .from('service_modules')
-    .select('*')
-    .order('module_name')
-  if (error) throw error
-  return data
+    .select('*', { count: 'exact' })
+
+  if (!options?.sortBy) {
+    query = query.order('module_name')
+  }
+
+  query = applyQueryOptions(query, options)
+
+  const { data, count, error } = await query
+  if (error) return handleDbError<ServiceModule>('getServiceModules', error)
+  return { data: data ?? [], count: count ?? 0, error: null }
 }

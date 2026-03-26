@@ -4,11 +4,13 @@ import { Badge } from '@/components/ui/badge'
 import { BarChart3, TrendingUp, Users, Presentation, MousePointerClick } from 'lucide-react'
 
 export default async function AnalyticsPage() {
-  let events: Record<string, unknown>[] = []
+  let events: any[] = []
   let fetchError = ''
   
   try {
-    events = (await getSalesFunnelEvents()) ?? []
+    const response = await getSalesFunnelEvents()
+    events = response.data ?? []
+    fetchError = response.error ?? ''
   } catch (e) {
     fetchError = String(e)
   }

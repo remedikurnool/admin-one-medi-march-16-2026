@@ -42,17 +42,17 @@ export default async function CommercePage() {
   let stats = { medicines: 0, orders: 0, prescriptions: 0, lowStock: 0 }
 
   try {
-    const [medicines, orders, prescriptions, inventory] = await Promise.all([
-      getMedicines().catch(() => []),
-      getMedicineOrders().catch(() => []),
-      getPrescriptions().catch(() => []),
-      getMedicineInventory().catch(() => []),
+    const [medicinesRes, ordersRes, prescriptionsRes, inventoryRes] = await Promise.all([
+      getMedicines().catch(() => ({ data: [], count: 0, error: null })),
+      getMedicineOrders().catch(() => ({ data: [], count: 0, error: null })),
+      getPrescriptions().catch(() => ({ data: [], count: 0, error: null })),
+      getMedicineInventory().catch(() => ({ data: [], count: 0, error: null })),
     ])
     stats = {
-      medicines: medicines?.length ?? 0,
-      orders: orders?.length ?? 0,
-      prescriptions: prescriptions?.length ?? 0,
-      lowStock: (inventory ?? []).filter((i: Record<string, unknown>) => Number(i.stock_quantity ?? 0) < 10).length,
+      medicines: medicinesRes.data?.length ?? 0,
+      orders: ordersRes.data?.length ?? 0,
+      prescriptions: prescriptionsRes.data?.length ?? 0,
+      lowStock: (inventoryRes.data ?? []).filter((i: any) => Number(i.stock_quantity ?? 0) < 10).length,
     }
   } catch {
     // silently fail, show 0s

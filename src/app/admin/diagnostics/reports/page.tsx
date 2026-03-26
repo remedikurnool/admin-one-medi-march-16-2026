@@ -4,11 +4,13 @@ import { FileText, ClipboardCheck, Clock, ShieldCheck } from 'lucide-react'
 import ReportsClient from './reports-client'
 
 export default async function ReportsPage() {
-  let reports = []
+  let reports: any[] = []
   let fetchError = null
 
   try {
-    reports = (await getLabReports()) ?? []
+    const response = await getLabReports()
+    reports = response.data ?? []
+    fetchError = response.error
   } catch (e) {
     fetchError = e instanceof Error ? e.message : String(e)
   }

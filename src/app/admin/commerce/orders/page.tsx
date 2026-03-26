@@ -11,10 +11,12 @@ const statusConfig: Record<string, { color: string; icon: React.ElementType }> =
 }
 
 export default async function MedicineOrdersPage() {
-  let orders: Record<string, unknown>[] = []
+  let orders: any[] = []
   let fetchError = ''
   try {
-    orders = (await getMedicineOrders()) ?? []
+    const response = await getMedicineOrders()
+    orders = response.data ?? []
+    fetchError = response.error ?? ''
   } catch (e) {
     fetchError = e instanceof Error ? e.message : String(e)
   }

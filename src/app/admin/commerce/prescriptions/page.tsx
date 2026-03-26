@@ -4,10 +4,12 @@ import { FileText, Upload, StickyNote } from 'lucide-react'
 import { PrescriptionsClient } from './prescriptions-client'
 
 export default async function PrescriptionsPage() {
-  let prescriptions: Record<string, unknown>[] = []
+  let prescriptions: any[] = []
   let fetchError = ''
   try {
-    prescriptions = (await getPrescriptions()) ?? []
+    const response = await getPrescriptions()
+    prescriptions = response.data ?? []
+    fetchError = response.error ?? ''
   } catch (e) {
     fetchError = e instanceof Error ? e.message : String(e)
   }

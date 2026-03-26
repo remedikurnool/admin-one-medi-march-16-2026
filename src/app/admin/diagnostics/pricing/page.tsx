@@ -4,11 +4,13 @@ import { Banknote, Home, FlaskConical, TrendingUp } from 'lucide-react'
 import PricingClient from './pricing-client'
 
 export default async function PricingPage() {
-  let pricing = []
+  let pricing: any[] = []
   let fetchError = null
 
   try {
-    pricing = (await getLabPricing()) ?? []
+    const response = await getLabPricing()
+    pricing = response.data ?? []
+    fetchError = response.error
   } catch (e) {
     fetchError = e instanceof Error ? e.message : String(e)
   }

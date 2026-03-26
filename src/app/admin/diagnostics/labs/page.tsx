@@ -4,11 +4,13 @@ import { Beaker, Activity, ShieldCheck, MapPin } from 'lucide-react'
 import LabsClient from './labs-client'
 
 export default async function LabsPage() {
-  let labs = []
+  let labs: any[] = []
   let fetchError = null
 
   try {
-    labs = (await getLabs()) ?? []
+    const response = await getLabs()
+    labs = response.data ?? []
+    fetchError = response.error
   } catch (e) {
     fetchError = e instanceof Error ? e.message : String(e)
   }

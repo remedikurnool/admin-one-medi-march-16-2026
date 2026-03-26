@@ -4,11 +4,13 @@ import { Calendar, Clock, CheckCircle2, XCircle, AlertCircle, TrendingUp } from 
 import BookingsClient from './bookings-client'
 
 export default async function BookingsPage() {
-  let bookings = []
+  let bookings: any[] = []
   let fetchError = null
 
   try {
-    bookings = (await getLabBookings()) ?? []
+    const response = await getLabBookings()
+    bookings = response.data ?? []
+    fetchError = response.error
   } catch (e) {
     fetchError = e instanceof Error ? e.message : String(e)
   }

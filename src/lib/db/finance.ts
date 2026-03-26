@@ -1,49 +1,96 @@
-import { createAdminClient } from '../supabase/admin'
+import { createAdminClient } from '@/lib/supabase/server'
+import { applyQueryOptions, handleDbError, type QueryOptions, type DbResponse } from './queryBuilder'
+import type {
+  PartnerCommission,
+  VendorSettlement,
+  PartnerPayout,
+  CommissionTransaction,
+} from '@/types/database'
 
-export async function getPartnerCommissions() {
+// ─── Partner Commissions ──────────────────────────────────────────────────
+
+export async function getPartnerCommissions(
+  options?: QueryOptions
+): Promise<DbResponse<PartnerCommission>> {
   const supabase = createAdminClient()
-  const { data, error } = await supabase
+  let query = supabase
     .schema('finance')
     .from('partner_commissions')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(100)
-  if (error) throw error
-  return data
+    .select('*', { count: 'exact' })
+
+  if (!options?.sortBy) {
+    query = query.order('created_at', { ascending: false })
+  }
+
+  query = applyQueryOptions(query, options)
+
+  const { data, count, error } = await query
+  if (error) return handleDbError<PartnerCommission>('getPartnerCommissions', error)
+  return { data: data ?? [], count: count ?? 0, error: null }
 }
 
-export async function getVendorSettlements() {
+// ─── Vendor Settlements ───────────────────────────────────────────────────
+
+export async function getVendorSettlements(
+  options?: QueryOptions
+): Promise<DbResponse<VendorSettlement>> {
   const supabase = createAdminClient()
-  const { data, error } = await supabase
+  let query = supabase
     .schema('finance')
     .from('vendor_settlements')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(100)
-  if (error) throw error
-  return data
+    .select('*', { count: 'exact' })
+
+  if (!options?.sortBy) {
+    query = query.order('created_at', { ascending: false })
+  }
+
+  query = applyQueryOptions(query, options)
+
+  const { data, count, error } = await query
+  if (error) return handleDbError<VendorSettlement>('getVendorSettlements', error)
+  return { data: data ?? [], count: count ?? 0, error: null }
 }
 
-export async function getPartnerPayouts() {
+// ─── Partner Payouts ──────────────────────────────────────────────────────
+
+export async function getPartnerPayouts(
+  options?: QueryOptions
+): Promise<DbResponse<PartnerPayout>> {
   const supabase = createAdminClient()
-  const { data, error } = await supabase
+  let query = supabase
     .schema('finance')
     .from('partner_payouts')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(100)
-  if (error) throw error
-  return data
+    .select('*', { count: 'exact' })
+
+  if (!options?.sortBy) {
+    query = query.order('created_at', { ascending: false })
+  }
+
+  query = applyQueryOptions(query, options)
+
+  const { data, count, error } = await query
+  if (error) return handleDbError<PartnerPayout>('getPartnerPayouts', error)
+  return { data: data ?? [], count: count ?? 0, error: null }
 }
 
-export async function getCommissionTransactions() {
+// ─── Commission Transactions ──────────────────────────────────────────────
+
+export async function getCommissionTransactions(
+  options?: QueryOptions
+): Promise<DbResponse<CommissionTransaction>> {
   const supabase = createAdminClient()
-  const { data, error } = await supabase
+  let query = supabase
     .schema('finance')
     .from('commission_transactions')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(100)
-  if (error) throw error
-  return data
+    .select('*', { count: 'exact' })
+
+  if (!options?.sortBy) {
+    query = query.order('created_at', { ascending: false })
+  }
+
+  query = applyQueryOptions(query, options)
+
+  const { data, count, error } = await query
+  if (error) return handleDbError<CommissionTransaction>('getCommissionTransactions', error)
+  return { data: data ?? [], count: count ?? 0, error: null }
 }

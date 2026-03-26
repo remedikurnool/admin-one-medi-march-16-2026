@@ -4,11 +4,13 @@ import { FlaskConical, Beaker, FileText, Tags } from 'lucide-react'
 import TestsClient from './tests-client'
 
 export default async function TestsPage() {
-  let tests = []
+  let tests: any[] = []
   let fetchError = null
 
   try {
-    tests = (await getLabTests()) ?? []
+    const response = await getLabTests()
+    tests = response.data ?? []
+    fetchError = response.error
   } catch (e) {
     fetchError = e instanceof Error ? e.message : String(e)
   }

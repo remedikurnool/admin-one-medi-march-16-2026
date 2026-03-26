@@ -11,14 +11,15 @@ const severityColors: Record<string, string> = {
 }
 
 export default async function AuditPage() {
-  let logs: Record<string, unknown>[] = []
-  let alerts: Record<string, unknown>[] = []
+  let logs: any[] = []
+  let alerts: any[] = []
   let fetchError = ''
   
   try {
-    ;[logs, alerts] = await Promise.all([getAuditLogs(), getSystemAlerts()])
-    logs = logs ?? []
-    alerts = alerts ?? []
+    const [logsRes, alertsRes] = await Promise.all([getAuditLogs(), getSystemAlerts()])
+    logs = logsRes.data ?? []
+    alerts = alertsRes.data ?? []
+    fetchError = logsRes.error ?? alertsRes.error ?? ''
   } catch (e) {
     fetchError = String(e)
   }
